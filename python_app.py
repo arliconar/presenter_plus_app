@@ -6,18 +6,21 @@ import time
 import keyboard
 import collections
 import os
+import json
 
 class PresenterDaemon:
     def __init__(self):
         self.log_history = collections.deque(maxlen=100)
         self.log("Iniciando Presenter+ Daemon...")
         
+        self.config_path = os.path.expanduser('~/.presenter_plus_config.json')
+        
         # State
         self.is_running = True
         self.icon = None
         
         # Selected target device: None means auto-connect to Microsoft/Presenter+
-        self.selected_vid_pid = None
+        self.selected_vid_pid = self.load_config()
         self.reconnect_requested = False
         self.search_enabled = True
         
@@ -40,6 +43,25 @@ class PresenterDaemon:
         formatted = f"[{timestamp}] {msg}"
         self.log_history.append(formatted)
         print(formatted)
+
+    def load_config(self):
+        if os.path.exists(self.config_path):
+            try:
+                with open(self.config_path, 'r') as f:
+                    data = json.load(f)
+                    vid_pid = data.get('selected_vid_pid')
+                    if vid_pid:
+                        return tuple(vid_pid)
+            except Exception as e:
+                self.log(f"Error cargando configuración: {e}")
+        return None
+
+    def save_config(self):
+        try:
+            with open(self.config_path, 'w') as f:
+                json.dump({'selected_vid_pid': self.selected_vid_pid}, f)
+        except Exception as e:
+            self.log(f"Error guardando configuración: {e}")
 
     def enumerate_grouped_devices(self):
         devices = hid.enumerate()
@@ -178,6 +200,7 @@ class PresenterDaemon:
             self.log("Selección: Automático (Presenter+/Microsoft)")
         else:
             self.log(f"Selección manual: VID:{vid_pid[0]:04X} PID:{vid_pid[1]:04X}")
+        self.save_config()
         self.reconnect_requested = True
 
     def get_device_menu(self):
