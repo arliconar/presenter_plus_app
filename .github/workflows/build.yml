@@ -3,9 +3,14 @@ name: Build Windows Executable
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*' # Se activa al subir etiquetas (ej. v1.0)
   pull_request:
     branches: [ "main" ]
   workflow_dispatch: # Permite ejecutarlo manualmente
+
+permissions:
+  contents: write # Permisos necesarios para crear un Release
 
 jobs:
   build:
@@ -35,3 +40,10 @@ jobs:
       with:
         name: PresenterPlus-Exe
         path: dist/PresenterPlus.exe
+
+    - name: Crear Release en GitHub
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v2
+      with:
+        files: dist/PresenterPlus.exe
+        generate_release_notes: true
