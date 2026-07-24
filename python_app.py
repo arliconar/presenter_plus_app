@@ -63,12 +63,8 @@ class PresenterDaemon:
                     buf = ctypes.create_unicode_buffer(length + 1)
                     user32.GetWindowTextW(hwnd, buf, length + 1)
                     title = buf.value
-                    
-                    keywords = getattr(self, 'target_window_titles', ["Teams", "Citrix", "VMware", "Remote Desktop", "Escritorio"])
-                    for keyword in keywords:
-                        if keyword.lower() in title.lower():
-                            teams_hwnds.append(hwnd)
-                            break
+                    if "Teams" in title:
+                        teams_hwnds.append(hwnd)
             return True
             
         EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
@@ -107,13 +103,11 @@ class PresenterDaemon:
             keyboard.send("alt+tab")
 
     def load_config(self):
-        self.target_window_titles = ["Teams", "Citrix", "VMware", "Remote Desktop", "Escritorio", "Workspace"]
         if os.path.exists(self.config_path):
             try:
                 with open(self.config_path, 'r') as f:
                     data = json.load(f)
                     vid_pid = data.get('selected_vid_pid')
-                    self.target_window_titles = data.get('target_window_titles', self.target_window_titles)
                     if vid_pid:
                         return tuple(vid_pid)
             except Exception as e:
@@ -123,10 +117,7 @@ class PresenterDaemon:
     def save_config(self):
         try:
             with open(self.config_path, 'w') as f:
-                json.dump({
-                    'selected_vid_pid': self.selected_vid_pid,
-                    'target_window_titles': getattr(self, 'target_window_titles', ["Teams"])
-                }, f)
+                json.dump({'selected_vid_pid': self.selected_vid_pid}, f)
         except Exception as e:
             self.log(f"Error guardando configuración: {e}")
 

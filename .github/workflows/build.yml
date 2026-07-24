@@ -14,7 +14,16 @@ permissions:
 
 jobs:
   build:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        os: [windows-latest, windows-11-arm]
+        include:
+          - os: windows-latest
+            arch: x64
+          - os: windows-11-arm
+            arch: arm64
+            
+    runs-on: ${{ matrix.os }}
 
     steps:
     - name: Checkout código
@@ -33,17 +42,17 @@ jobs:
 
     - name: Construir el ejecutable con PyInstaller
       run: |
-        pyinstaller --noconsole --onefile --name "PresenterPlus" python_app.py
+        pyinstaller --noconsole --onefile --name "PresenterPlus-${{ matrix.arch }}" python_app.py
 
     - name: Subir artefacto (.exe)
       uses: actions/upload-artifact@v4
       with:
-        name: PresenterPlus-Exe
-        path: dist/PresenterPlus.exe
+        name: PresenterPlus-${{ matrix.arch }}-Exe
+        path: dist/PresenterPlus-${{ matrix.arch }}.exe
 
     - name: Crear Release en GitHub
       if: startsWith(github.ref, 'refs/tags/')
       uses: softprops/action-gh-release@v2
       with:
-        files: dist/PresenterPlus.exe
+        files: dist/PresenterPlus-${{ matrix.arch }}.exe
         generate_release_notes: true
