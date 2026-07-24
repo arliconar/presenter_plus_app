@@ -37,6 +37,14 @@ jobs:
 
     - name: Instalar dependencias
       run: |
+        # Habilitar soporte para rutas largas en Windows (evita errores C1083 con MSVC)
+        Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem" -Name "LongPathsEnabled" -Value 1
+        
+        # Usar un directorio temporal muy corto para la compilación de pip
+        New-Item -ItemType Directory -Force -Path C:\T
+        $env:TMP="C:\T"
+        $env:TEMP="C:\T"
+        
         python -m pip install --upgrade pip
         pip install -r requirements.txt
 
