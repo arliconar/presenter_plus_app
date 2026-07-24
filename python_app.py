@@ -45,62 +45,14 @@ class PresenterDaemon:
         print(formatted)
 
     def mute_teams(self):
-        import ctypes
-        from ctypes import wintypes
         import time
         import keyboard
         
-        user32 = ctypes.windll.user32
-        kernel32 = ctypes.windll.kernel32
-        
-        current_hwnd = user32.GetForegroundWindow()
-        teams_hwnds = []
-        
-        def enum_cb(hwnd, lparam):
-            if user32.IsWindowVisible(hwnd):
-                length = user32.GetWindowTextLengthW(hwnd)
-                if length > 0:
-                    buf = ctypes.create_unicode_buffer(length + 1)
-                    user32.GetWindowTextW(hwnd, buf, length + 1)
-                    title = buf.value
-                    if "Teams" in title:
-                        teams_hwnds.append(hwnd)
-            return True
-            
-        EnumWindowsProc = ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
-        user32.EnumWindows(EnumWindowsProc(enum_cb), 0)
-        
-        if teams_hwnds and current_hwnd not in teams_hwnds:
-            teams_hwnd = teams_hwnds[0]
-            
-            def activate_window(target_hwnd, current_fg):
-                if current_fg == 0:
-                    user32.SetForegroundWindow(target_hwnd)
-                    return
-                current_thread = kernel32.GetCurrentThreadId()
-                fg_thread = user32.GetWindowThreadProcessId(current_fg, None)
-                if current_thread != fg_thread and fg_thread != 0:
-                    user32.AttachThreadInput(current_thread, fg_thread, True)
-                    user32.SetForegroundWindow(target_hwnd)
-                    user32.AttachThreadInput(current_thread, fg_thread, False)
-                else:
-                    user32.SetForegroundWindow(target_hwnd)
-
-            activate_window(teams_hwnd, current_hwnd)
-            time.sleep(0.05)
-            keyboard.send("ctrl+alt+t")
-            time.sleep(0.4)
-            keyboard.send("ctrl+shift+m")
-            time.sleep(0.1)
-            keyboard.send("alt+tab")
-            time.sleep(0.05)
-            activate_window(current_hwnd, user32.GetForegroundWindow())
-        else:
-            keyboard.send("ctrl+alt+t")
-            time.sleep(0.4)
-            keyboard.send("ctrl+shift+m")
-            time.sleep(0.1)
-            keyboard.send("alt+tab")
+        keyboard.send("ctrl+alt+t")
+        time.sleep(0.5)
+        keyboard.send("ctrl+shift+m")
+        time.sleep(0.5)
+        keyboard.send("alt+tab")
 
     def load_config(self):
         if os.path.exists(self.config_path):
