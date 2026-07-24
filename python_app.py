@@ -45,14 +45,7 @@ class PresenterDaemon:
         print(formatted)
 
     def mute_teams(self):
-        import time
-        import keyboard
-        
-        keyboard.send("ctrl+alt+t")
-        time.sleep(0.5)
         keyboard.send("ctrl+shift+m")
-        time.sleep(0.5)
-        keyboard.send("alt+tab")
 
     def load_config(self):
         if os.path.exists(self.config_path):
